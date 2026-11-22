@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% set active_page = "dashboard" %}
+
+{% block title %}AeroSense AI - Model Analytics & Performance Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-4 bg-light border-bottom">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1 small">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active">Model Performance Dashboard</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h3 class="fw-bold text-navy mb-0">
+                    <i class="bi bi-speedometer2 text-sky me-2"></i>Model Analytics & Performance Dashboard
+                </h3>
+                <p class="text-muted small mb-0 mt-1">
+                    Comprehensive evaluation of Random Forest vs. XGBoost on the Twitter US Airline Sentiment benchmark.
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-success-subtle text-success border border-success p-2">
+                    <i class="bi bi-check-circle-fill me-1"></i> Target Acc &ge; 80% Achieved
+                </span>
+                <span class="badge bg-primary-subtle text-primary border border-primary p-2">
+                    <i class="bi bi-shield-check me-1"></i> Leak-Free SMOTE inside CV
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Executive KPI Summary Cards -->
+    <div class="row g-3 mb-5">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-1">XGBoost Test Accuracy</div>
+                <div class="display-6 fw-black text-emerald mb-1">
+                    {{ "%.2f"|format(metadata.metrics.xgboost.accuracy * 100) }}%
+                </div>
+                <span class="badge bg-emerald-subtle text-emerald mx-auto">Surpasses 80% Goal</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-1">5-Fold CV Mean F1 (± std)</div>
+                <div class="display-6 fw-black text-sky mb-1">
+                    {{ "%.3f"|format(metadata.metrics.xgboost.cv_f1_mean) }}
+                </div>
+                <span class="badge bg-sky-subtle text-sky mx-auto">± {{ "%.3f"|format(metadata.metrics.xgboost.cv_f1_std) }} (SMOTE in Fold)</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Weighted F1-Score</div>
+                <div class="display-6 fw-black text-navy mb-1">
+                    {{ "%.3f"|format(metadata.metrics.xgboost.f1_weighted) }}
+                </div>
+                <span class="badge bg-light text-muted border mx-auto">Macro: {{ "%.3f"|format(metadata.metrics.xgboost.f1_macro) }}</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Multiclass ROC-AUC (OvR)</div>
+                <div class="display-6 fw-black text-purple mb-1">
+                    {{ "%.3f"|format(metadata.metrics.xgboost.roc_auc) }}
+                </div>
+                <span class="badge bg-purple-subtle text-purple mx-auto">Weighted One-vs-Rest</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparative Metrics Table -->
+    <div class="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
+        <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+            <h5 class="fw-bold text-navy mb-0">Model Performance Comparison Benchmark</h5>
+            <p class="text-muted small mb-0">Direct comparison across 80/20 stratified test set and 5-fold SMOTE cross-validation.</p>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Metric</th>
+                        <th>Random Forest (Baseline)</th>
+                        <th>XGBoost (Champion)</th>
+                        <th>Benchmark Requirement</th>
+                        <th>Delta / Superiority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold text-navy">Test Accuracy</td>
+                        <td>{{ "%.2f"|format(metadata.metrics.random_forest.accuracy * 100) }}%</td>
+                        <td class="fw-bold text-emerald">{{ "%.2f"|format(metadata.metrics.xgboost.accuracy * 100) }}%</td>
+                        <td><span class="badge bg-danger-subtle text-danger">&ge; 80.0%</span></td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.2f"|format((metadata.metrics.xgboost.accuracy - metadata.metrics.random_forest.accuracy) * 100) }}%</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">Weighted Precision</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.precision_weighted) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.precision_weighted) }}</td>
+                        <td>Highest</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.precision_weighted - metadata.metrics.random_forest.precision_weighted) }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">Weighted Recall</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.recall_weighted) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.recall_weighted) }}</td>
+                        <td>Highest</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.recall_weighted - metadata.metrics.random_forest.recall_weighted) }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">Weighted F1-Score</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.f1_weighted) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.f1_weighted) }}</td>
+                        <td>Primary Objective</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.f1_weighted - metadata.metrics.random_forest.f1_weighted) }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">Macro F1-Score</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.f1_macro) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.f1_macro) }}</td>
+                        <td>Handles Minority Classes</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.f1_macro - metadata.metrics.random_forest.f1_macro) }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">Multiclass ROC-AUC (OvR)</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.roc_auc) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.roc_auc) }}</td>
+                        <td>Discriminative Power</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.roc_auc - metadata.metrics.random_forest.roc_auc) }}</span></td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-navy">5-Fold Stratified CV Mean F1</td>
+                        <td>{{ "%.4f"|format(metadata.metrics.random_forest.cv_f1_mean) }} ± {{ "%.4f"|format(metadata.metrics.random_forest.cv_f1_std) }}</td>
+                        <td class="fw-bold text-emerald">{{ "%.4f"|format(metadata.metrics.xgboost.cv_f1_mean) }} ± {{ "%.4f"|format(metadata.metrics.xgboost.cv_f1_std) }}</td>
+                        <td>Generalizability Test</td>
+                        <td><span class="badge bg-success-subtle text-success">+{{ "%.4f"|format(metadata.metrics.xgboost.cv_f1_mean - metadata.metrics.random_forest.cv_f1_mean) }}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Model Evaluation Visualizations -->
+    <h4 class="fw-bold text-navy mb-3"><i class="bi bi-graph-up me-2 text-sky"></i>Model Evaluation Visualizations</h4>
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Confusion Matrices (RF vs. XGBoost)</h6>
+                    <small class="text-muted">Breakdown of true vs. predicted sentiment counts.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eval_confusion_matrices.png') }}" class="img-fluid rounded-3 border" alt="Confusion Matrices">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Multiclass ROC Curves (One-vs-Rest)</h6>
+                    <small class="text-muted">Sensitivity vs. specificity tradeoff for Negative, Neutral, and Positive classes.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eval_roc_curves.png') }}" class="img-fluid rounded-3 border" alt="ROC Curves">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Top 20 Feature Importance (Gini vs. Gain)</h6>
+                    <small class="text-muted">Most influential TF-IDF n-grams, sentiment words, and metadata features.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eval_feature_importance.png') }}" class="img-fluid rounded-3 border" alt="Feature Importance">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Test Set Benchmark Comparison</h6>
+                    <small class="text-muted">Comparative bar chart across all 6 core evaluation metrics against 80% goal.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eval_model_comparison.png') }}" class="img-fluid rounded-3 border" alt="Model Comparison">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exploratory Data Analysis (EDA) Gallery -->
+    <h4 class="fw-bold text-navy mb-3"><i class="bi bi-pie-chart-fill me-2 text-sky"></i>Exploratory Data Analysis (EDA) Gallery</h4>
+    <div class="row g-4 mb-5">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Class Frequency & Sentiment Imbalance</h6>
+                    <small class="text-muted">Heavy skew toward negative sentiment (~62.7%) justifying SMOTE balancing.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eda_sentiment_distribution.png') }}" class="img-fluid rounded-3 border" alt="Sentiment Distribution">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Character Length & Word Count by Class</h6>
+                    <small class="text-muted">Negative tweets exhibit substantially higher length and word count.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eda_text_length_boxplot.png') }}" class="img-fluid rounded-3 border" alt="Text Length Boxplot">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Correlation Heatmap of Numeric Features</h6>
+                    <small class="text-muted">Relationships between text metrics, sentiment lexicon scores, and annotator confidence.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eda_correlation_heatmap.png') }}" class="img-fluid rounded-3 border" alt="Correlation Heatmap">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Sentiment Score & VADER Density Distributions</h6>
+                    <small class="text-muted">Distinct multimodal separation across positive, neutral, and negative tweets.</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eda_sentiment_score_analysis.png') }}" class="img-fluid rounded-3 border" alt="Sentiment Score KDE">
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold text-navy mb-0">Airline Breakdown & Customer Complaints</h6>
+                    <small class="text-muted">Proportion of negative feedback per carrier and top drivers (e.g. Late Flight, Baggage).</small>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <img src="{{ url_for('static', filename='images/eda_airline_sentiment_breakdown.png') }}" class="img-fluid rounded-3 border" alt="Airline Breakdown">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

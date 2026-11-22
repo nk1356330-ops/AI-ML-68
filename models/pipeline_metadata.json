@@ -1,0 +1,59 @@
+{
+    "best_model": "XGBoost",
+    "sentiment_mapping": {
+        "negative": 0,
+        "neutral": 1,
+        "positive": 2
+    },
+    "inverse_sentiment_mapping": {
+        "0": "negative",
+        "1": "neutral",
+        "2": "positive"
+    },
+    "metrics": {
+        "xgboost": {
+            "accuracy": 0.7827868852459017,
+            "precision_weighted": 0.7822571279577154,
+            "recall_weighted": 0.7827868852459017,
+            "f1_weighted": 0.782435326138648,
+            "f1_macro": 0.7256780559149302,
+            "roc_auc": 0.9118518526983858,
+            "cv_f1_mean": 0.7942533156601617,
+            "cv_f1_std": 0.004913664514731941
+        },
+        "random_forest": {
+            "accuracy": 0.7561475409836066,
+            "precision_weighted": 0.7789081756670556,
+            "recall_weighted": 0.7561475409836066,
+            "f1_weighted": 0.7636890883616001,
+            "f1_macro": 0.7096618635863289,
+            "roc_auc": 0.89052324216125,
+            "cv_f1_mean": 0.7729234429703282,
+            "cv_f1_std": 0.007903066502423622
+        }
+    },
+    "feature_num_cols": [
+        "text_length",
+        "word_count",
+        "hashtag_count",
+        "mention_count",
+        "url_count",
+        "excl_count",
+        "q_count",
+        "caps_ratio",
+        "positive_word_count",
+        "negative_word_count",
+        "sentiment_score",
+        "vader_compound",
+        "vader_pos",
+        "vader_neg",
+        "vader_neu"
+    ],
+    "cat_cols": [
+        "airline",
+        "confidence_bucket"
+    ],
+    "total_samples": 14640,
+    "train_samples": 11712,
+    "test_samples": 2928
+}
